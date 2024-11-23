@@ -22,15 +22,58 @@ $cursos = $conn->query("
     GROUP BY c.id, c.nombre
 ");
 
-// Obtener usuarios
-$usuarios = $conn->query("SELECT id, nombre FROM usuarios");
-
-// Obtener materias disponibles con curso_id = 22
+// Verificar si el parámetro 'editar' está presente en la URL
 $materias_disponibles = $conn->query("SELECT id, nombre FROM materias WHERE curso_id = 22");
 
-if (!$cursos || !$usuarios || !$materias_disponibles) {
-    die("Error al obtener datos: " . $conn->error);
+
+
+// Obtener usuarios
+$usuariosx = $conn->query("SELECT id, nombre FROM usuarios");
+$usuarios = $conn->query("
+    SELECT usuarios.id, usuarios.nombre
+    FROM usuarios
+    LEFT JOIN cursos_actuales ON usuarios.id = cursos_actuales.usuario_id
+    WHERE cursos_actuales.usuario_id IS NULL
+");
+
+if (isset($_GET['editar'])) {
+    // Obtén el ID del curso
+    $curso_id = intval($_GET['editar']);
+
+
+    // Obtén el nombre del curso y las materias (si están en la URL)
+    $curso_nombre = isset($_GET['curso_nombre']) ? $_GET['curso_nombre'] : '';
+    $materias = isset($_GET['materias']) ? $_GET['materias'] : '';
+
+    // Asegúrate de limpiar los valores con htmlspecialchars para evitar XSS
+    $curso_nombre = htmlspecialchars($curso_nombre, ENT_QUOTES, 'UTF-8');
+    $materias = htmlspecialchars($materias, ENT_QUOTES, 'UTF-8');
+    $usuariosZ = $conn->query("
+        SELECT DISTINCT usuarios.id, usuarios.nombre
+        FROM usuarios
+        INNER JOIN cursos_actuales ON usuarios.id = cursos_actuales.usuario_id
+        WHERE cursos_actuales.curso_id = $curso_id
+    ");
+    $materias_actuales = $conn->query("SELECT id, nombre FROM materias WHERE curso_id = $curso_id");
+    // Obtener materias disponibles con curso_id = 22
+    if (!$cursos || !$usuarios || !$materias_actuales) {
+        die("Error al obtener datos: " . $conn->error);
+    }
+    // Imprimir script para cargar los datos del curso en el modal
+    echo "
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            cargarDatosCurso($curso_id, '$curso_nombre', '$materias');
+            var modal = new bootstrap.Modal(document.getElementById('modalEditarCurso'));
+            modal.show();
+        });
+    </script>
+    ";
 }
+
+
+
+
 
 // Editar curso
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['editar_curso'])) {
@@ -49,11 +92,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['editar_curso'])) {
         $update_query->execute();
 
         // Actualizar materias: solo cambiar el curso_id
+
+        // Corregir la consulta de actualización
+        $conn->query("UPDATE materias SET curso_id = 22 WHERE curso_id = $curso_id");
+
+        // Preparar la consulta de actualización segura
         $update_materia_query = $conn->prepare("UPDATE materias SET curso_id = ? WHERE id = ?");
+
+        // Ejecutar la consulta para cada materia
         foreach ($materias as $materia_id) {
             $update_materia_query->bind_param("ii", $curso_id, $materia_id);
             $update_materia_query->execute();
         }
+
 
         // Actualizar estudiantes
         $conn->query("DELETE FROM cursos_actuales WHERE curso_id = $curso_id");
@@ -65,6 +116,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['editar_curso'])) {
 
         // Confirmar transacción
         $conn->commit();
+        header("Location: " . $_SERVER['PHP_SELF']);
+
         $mensaje = "Curso actualizado correctamente.";
         $alerta = "success";
     } catch (Exception $e) {
@@ -113,6 +166,70 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear_curso'])) {
         $alerta = "danger";
     }
 }
+
+
+// Verificar si se ha recibido el parámetro delete
+if (isset($_GET['delete'])) {
+    // Obtener el ID del curso que se desea eliminar
+    $cursoId = intval($_GET['delete']);
+
+    // Iniciar una transacción para asegurar que todas las operaciones se realicen correctamente
+    $conn->begin_transaction();
+
+    try {
+        // Paso 1: Obtener los IDs de las materias asociadas al curso
+        $query_get_materias = "SELECT id FROM materias WHERE curso_id = ?";
+        $stmt = $conn->prepare($query_get_materias);
+        $stmt->bind_param("i", $cursoId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $materiasIds = [];
+        while ($row = $result->fetch_assoc()) {
+            $materiasIds[] = $row['id'];
+        }
+        $stmt->close();
+
+        // Paso 2: Eliminar registros de categorias_notas asociados a las materias
+        if (!empty($materiasIds)) {
+            $placeholders = implode(',', array_fill(0, count($materiasIds), '?'));
+            $query_delete_categorias_notas = "DELETE FROM categorias_notas WHERE materia_id IN ($placeholders)";
+            $stmt = $conn->prepare($query_delete_categorias_notas);
+            $stmt->bind_param(str_repeat('i', count($materiasIds)), ...$materiasIds);
+            $stmt->execute();
+            $stmt->close();
+        }
+
+        // Paso 3: Eliminar las materias asociadas al curso
+        $query_delete_materias = "DELETE FROM materias WHERE curso_id = ?";
+        $stmt = $conn->prepare($query_delete_materias);
+        $stmt->bind_param("i", $cursoId);
+        $stmt->execute();
+        $stmt->close();
+
+        // Paso 4: Eliminar el curso
+        $query_delete_curso = "DELETE FROM cursos WHERE id = ?";
+        $stmt = $conn->prepare($query_delete_curso);
+        $stmt->bind_param("i", $cursoId);
+        $stmt->execute();
+        $stmt->close();
+
+        // Confirmar la transacción
+        $conn->commit();
+
+        // Redirigir con mensaje de éxito
+        header("Location: cursos.php?message=Curso eliminado exitosamente");
+        exit;
+    } catch (Exception $e) {
+        // Revertir la transacción si ocurre algún error
+        $conn->rollback();
+        echo "Error: " . $e->getMessage();
+    }
+
+    // Cerrar la conexión
+    $conn->close();
+}
+
+
 
 
 ?>
@@ -191,13 +308,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear_curso'])) {
                                     <td><?php echo htmlspecialchars($curso['materias'] ?? 'Sin materias asociadas'); ?></td>
                                     <td><?php echo htmlspecialchars($curso['estudiantes'] ?? 'Sin estudiantes inscritos'); ?></td>
                                     <td>
-                                        <a href="#"
-                                            class="btn btn-warning btn-sm"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#modalEditarCurso"
-                                            onclick="cargarDatosCurso(<?php echo $curso['curso_id']; ?>, '<?php echo htmlspecialchars($curso['curso_nombre']); ?>', '<?php echo htmlspecialchars($curso['materias']); ?>');">
-                                            <i class="fa-solid fa-pen-to-square"></i> Editar
-                                        </a>
+                                        <form action="ccurso.php" method="get" class="d-inline">
+                                            <!-- Campo oculto para enviar el ID del curso -->
+                                            <input type="hidden" name="editar" value="<?php echo htmlspecialchars($curso['curso_id']); ?>">
+
+                                            <!-- Campo oculto para enviar el nombre del curso -->
+                                            <input type="hidden" name="curso_nombre" value="<?php echo htmlspecialchars($curso['curso_nombre'], ENT_QUOTES, 'UTF-8'); ?>">
+
+                                            <!-- Campo oculto para enviar las materias -->
+                                            <input type="hidden" name="materias" value="<?php echo htmlspecialchars($curso['materias'], ENT_QUOTES, 'UTF-8'); ?>">
+
+                                            <!-- Botón de edición que activa el modal -->
+                                            <button type="submit" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditarCurso">
+                                                <i class="fa-solid fa-pen-to-square"></i> Editar
+                                            </button>
+                                        </form>
+
+
                                         <a href="#"
                                             class="btn btn-danger btn-sm"
                                             onclick="confirmarEliminacion(<?php echo $curso['curso_id']; ?>);">
@@ -219,26 +346,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear_curso'])) {
             <!-- Botón para agregar un nuevo curso -->
 
         </div>
-        <!-- Modal para editar curso -->
-        <div class="modal fade" id="modalEditarCurso" tabindex="-1" aria-labelledby="editarCursoLabel" aria-hidden="true">
+        <div class="mt-4">
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalNuevoCurso">Crear Nuevo Curso</button>
+        </div>
+
+        <div class="modal fade" id="modalNuevoCurso" tabindex="-1" aria-labelledby="nuevoCursoLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <form method="POST" action="">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="editarCursoLabel">Editar Curso</h5>
+                            <h5 class="modal-title" id="nuevoCursoLabel">Nuevo Curso</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
-                            <input type="hidden" name="curso_id" id="editarCursoId">
-
                             <div class="mb-3">
-                                <label for="nombreCurso" class="form-label">Nombre del Curso</label>
-                                <input type="text" class="form-control" id="nombreCurso" name="nombre_curso" required>
+                                <label for="nombreNuevoCurso" class="form-label">Nombre del Curso</label>
+                                <input type="text" class="form-control" id="nombreNuevoCurso" name="nombre_nuevo_curso" required>
                             </div>
-
                             <div class="mb-3">
-                                <label class="form-label">Materias Disponibles</label>
+                                <label class="form-label">Materias Disponibles para añadir</label>
                                 <div class="border p-2 rounded" style="max-height: 200px; overflow-y: scroll;">
+                                    <!-- Aquí debes incluir la lógica PHP para mostrar las materias -->
                                     <?php while ($materia = $materias_disponibles->fetch_assoc()): ?>
                                         <div class="form-check">
                                             <input
@@ -254,14 +382,91 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear_curso'])) {
                                     <?php endwhile; ?>
                                 </div>
                             </div>
-
-
-
-
                             <div class="mb-3">
                                 <label class="form-label">Seleccionar Estudiantes</label>
                                 <div class="border p-2 rounded" style="max-height: 200px; overflow-y: scroll;">
-                                    <?php while ($usuario = $usuarios->fetch_assoc()): ?>
+                                    <?php if ($usuarios->num_rows > 0): ?>
+                                        <?php while ($usuario = $usuarios->fetch_assoc()): ?>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="usuario-<?php echo $usuario['id']; ?>" name="usuarios[]" value="<?php echo $usuario['id']; ?>">
+                                                <label class="form-check-label" for="usuario-<?php echo $usuario['id']; ?>">
+                                                    <?php echo htmlspecialchars($usuario['nombre']); ?>
+                                                </label>
+                                            </div>
+                                        <?php endwhile; ?>
+                                    <?php else: ?>
+                                        <p>No hay estudiantes disponibles.</p>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                            <!-- Agrega aquí el código para los estudiantes si es necesario -->
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" name="crear_curso" class="btn btn-primary">Crear Curso</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!-- Modal para editar curso -->
+        <div class="modal fade" id="modalEditarCurso" tabindex="-1" aria-labelledby="editarCursoLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form method="POST" action="">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="editarCursoLabel">Editar Curso</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <input type="hidden" name="curso_id" id="editarCursoId">
+                            <div class="mb-3">
+                                <label for="nombreCurso" class="form-label">Nombre del Curso</label>
+                                <input type="text" class="form-control" id="nombreCurso" name="nombre_curso" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Materias Disponibles</label>
+                                <div class="border p-2 rounded" style="max-height: 200px; overflow-y: scroll;">
+                                    <?php while ($materia = $materias_actuales->fetch_assoc()): ?>
+                                        <div class="form-check">
+                                            <input
+                                                class="form-check-input"
+                                                type="checkbox"
+                                                id="materia-actual-<?php echo $materia['id']; ?>"
+                                                name="materias[]"
+                                                value="<?php echo $materia['id']; ?>"
+                                                checked> <!-- Marcar las materias disponibles por defecto -->
+                                            <label class="form-check-label" for="materia-actual-<?php echo $materia['id']; ?>">
+                                                <?php echo htmlspecialchars($materia['nombre']); ?>
+                                            </label>
+                                        </div>
+                                    <?php endwhile; ?>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Materias Adicionales</label>
+                                <div class="border p-2 rounded" style="max-height: 200px; overflow-y: scroll;">
+                                    <?php while ($materia = $materias_disponibles->fetch_assoc()): ?>
+                                        <!-- Verificar si la materia adicional no está ya en materias actuales -->
+                                        <div class="form-check">
+                                            <input
+                                                class="form-check-input"
+                                                type="checkbox"
+                                                id="materia-disponible-<?php echo $materia['id']; ?>"
+                                                name="materias[]"
+                                                value="<?php echo $materia['id']; ?>">
+                                            <!-- No usar el atributo 'checked' para las materias adicionales -->
+                                            <label class="form-check-label" for="materia-disponible-<?php echo $materia['id']; ?>">
+                                                <?php echo htmlspecialchars($materia['nombre']); ?>
+                                            </label>
+                                        </div>
+                                    <?php endwhile; ?>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Seleccionar Estudiantes</label>
+                                <div class="border p-2 rounded" style="max-height: 200px; overflow-y: scroll;">
+                                    <?php while ($usuario = $usuariosZ->fetch_assoc()): ?>
                                         <div class="form-check">
                                             <input
                                                 class="form-check-input"
@@ -274,6 +479,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear_curso'])) {
                                             </label>
                                         </div>
                                     <?php endwhile; ?>
+                                    <?php if ($usuarios->num_rows > 0): ?>
+                                        <?php while ($usuario = $usuarios->fetch_assoc()): ?>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="usuario-<?php echo $usuario['id']; ?>" name="usuarios[]" value="<?php echo $usuario['id']; ?>">
+                                                <label class="form-check-label" for="usuario-<?php echo $usuario['id']; ?>">
+                                                    <?php echo htmlspecialchars($usuario['nombre']); ?>
+                                                </label>
+                                            </div>
+                                        <?php endwhile; ?>
+                                    <?php else: ?>
+                                        <p>No hay estudiantes disponibles.</p>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
@@ -285,64 +502,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear_curso'])) {
                 </div>
             </div>
         </div>
-        <!-- Botón para agregar un nuevo curso -->
-        <div class="mt-4">
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalNuevoCurso">Crear Nuevo Curso</button>
-        </div>
+
+
+
+
         </div>
 
-        <!-- Modal para agregar un nuevo curso -->
-        <div class="modal fade" id="modalNuevoCurso" tabindex="-1" aria-labelledby="nuevoCursoLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <form method="POST" action="">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="nuevoCursoLabel">Nuevo Curso</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="mb-3">
-                                <label for="nombreNuevoCurso" class="form-label">Nombre del Curso</label>
-                                <input type="text" class="form-control" id="nombreNuevoCurso" name="nombre_nuevo_curso" required>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Materias Disponibles</label>
-                                <div class="border p-2 rounded" style="max-height: 200px; overflow-y: scroll;">
-                                    <?php while ($materia = $materias_disponibles->fetch_assoc()): ?>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="materia-<?php echo $materia['id']; ?>" name="materias[]" value="<?php echo $materia['id']; ?>">
-                                            <label class="form-check-label" for="materia-<?php echo $materia['id']; ?>"><?php echo htmlspecialchars($materia['nombre']); ?></label>
-                                        </div>
-                                    <?php endwhile; ?>
-                                </div>
-                            </div>
-                            <div class="mb-3">
-    <label class="form-label">Seleccionar Estudiantes</label>
-    <div class="border p-2 rounded" style="max-height: 200px; overflow-y: scroll;">
-        <?php if ($usuarios->num_rows > 0): ?>
-            <?php while ($usuario = $usuarios->fetch_assoc()): ?>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="usuario-<?php echo $usuario['id']; ?>" name="usuarios[]" value="<?php echo $usuario['id']; ?>">
-                    <label class="form-check-label" for="usuario-<?php echo $usuario['id']; ?>">
-                        <?php echo htmlspecialchars($usuario['nombre']); ?>
-                    </label>
-                </div>
-            <?php endwhile; ?>
-        <?php else: ?>
-            <p>No hay estudiantes disponibles.</p>
-        <?php endif; ?>
-    </div>
-</div>
 
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                            <button type="submit" name="crear_curso" class="btn btn-primary">Crear Curso</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+
 
     </main>
 
@@ -358,21 +525,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear_curso'])) {
     function cargarDatosCurso(id, nombre, materias) {
         // Cargar datos básicos
         document.getElementById('editarCursoId').value = id;
+
         document.getElementById('nombreCurso').value = nombre;
 
         // Limpiar todos los checkboxes
-        document.querySelectorAll('[name="materias[]"]').forEach((checkbox) => {
-            checkbox.checked = false;
-        });
 
-        // Marcar las materias asignadas al curso
-        materias.split(',').forEach((materiaNombre) => {
-            document.querySelectorAll('[name="materias[]"]').forEach((checkbox) => {
-                if (checkbox.nextElementSibling.innerText.trim() === materiaNombre.trim()) {
-                    checkbox.checked = true;
-                }
-            });
-        });
+
+
     }
 </script>
 

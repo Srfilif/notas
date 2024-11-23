@@ -14,7 +14,7 @@ $usuario_id = $_SESSION['usuario_id'];
 // Obtener el ID de la materia seleccionada (si lo hay)
 $materia_id = isset($_GET['materia_id']) ? intval($_GET['materia_id']) : null;
 
-// Consultar las materias del estudiante
+// Consultar las materias del estudiante (únicamente del curso actual)
 $materias_query = "
     SELECT DISTINCT m.id, m.nombre 
     FROM materias m
@@ -34,6 +34,7 @@ $notas_query = "
     FROM notas n
     JOIN materias m ON n.materia_id = m.id
     JOIN categorias_notas c ON n.categoria_id = c.id
+    JOIN cursos_actuales ca ON m.curso_id = ca.curso_id
     WHERE n.usuario_id = $usuario_id
 ";
 
@@ -68,6 +69,7 @@ while ($categoria = $categorias->fetch_assoc()) {
     $materias_categorias[$categoria['materia']][] = $categoria['categoria'];
 }
 ?>
+>
 
 <!DOCTYPE html>
 <html lang="es">
@@ -102,7 +104,7 @@ while ($categoria = $categorias->fetch_assoc()) {
 </head>
 
 <body class="bg-light">
-<aside>
+    <aside>
         <?php include 'componentes/sidebar.php'; ?>
     </aside>
     <?php include 'componentes/topbar.php'; ?>
@@ -125,6 +127,7 @@ while ($categoria = $categorias->fetch_assoc()) {
                     </select>
                 </div>
             </form>
+
 
             <!-- Mostrar las tablas de notas -->
             <?php if (!empty($materias_notas)): ?>
