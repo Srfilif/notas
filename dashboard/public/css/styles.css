@@ -1,0 +1,55 @@
+.nav-link.active {
+    background-color: #0d6efd !important;
+    /* Azul de Bootstrap */
+    color: white !important;
+    /* Cambia el color de la fuente a blanco */
+}
+
+/* Asegurarse de que los enlaces no activos tengan color blanco */
+.nav-link {
+    color: #fff !important;
+    /* Asegura que el texto sea blanco */
+}
+
+.nav-link.active {
+    background-color: #0d6efd !important;
+    color: white !important;
+}
+
+.nav-link {
+    color: #fff !important;
+}
+
+.navbarfl {
+
+    padding-left: 280px;
+
+}
+
+footer{
+    padding-left: 300px;
+    padding-right: 20px;
+    color: white;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+aside {
+    position: fixed;
+    height: 100vh;
+    width: 280px;
+    background-color: #343a40; /* bg-dark */
+    color: white;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+}
+
+
+main {
+    margin-left: 280px; /* Ancho del sidebar */
+    flex: 1;
+    padding: 20px;
+}

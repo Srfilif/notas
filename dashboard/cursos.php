@@ -24,11 +24,18 @@ $cursos = $conn->query("
 
 // Verificar si el parámetro 'editar' está presente en la URL
 $materias_disponibles = $conn->query("SELECT id, nombre FROM materias WHERE curso_id = 22");
+$materias_disponiblesx = $conn->query("SELECT id, nombre FROM materias WHERE curso_id = 22");
 
 
 
 // Obtener usuarios
-$usuariosx = $conn->query("SELECT id, nombre FROM usuarios");
+$usuariosx = $conn->query("
+    SELECT usuarios.id, usuarios.nombre
+    FROM usuarios
+    LEFT JOIN cursos_actuales ON usuarios.id = cursos_actuales.usuario_id
+    WHERE cursos_actuales.usuario_id IS NULL
+");
+
 $usuarios = $conn->query("
     SELECT usuarios.id, usuarios.nombre
     FROM usuarios
@@ -308,7 +315,7 @@ if (isset($_GET['delete'])) {
                                     <td><?php echo htmlspecialchars($curso['materias'] ?? 'Sin materias asociadas'); ?></td>
                                     <td><?php echo htmlspecialchars($curso['estudiantes'] ?? 'Sin estudiantes inscritos'); ?></td>
                                     <td>
-                                        <form action="ccurso.php" method="get" class="d-inline">
+                                        <form action="cursos.php" method="get" class="d-inline">
                                             <!-- Campo oculto para enviar el ID del curso -->
                                             <input type="hidden" name="editar" value="<?php echo htmlspecialchars($curso['curso_id']); ?>">
 
@@ -444,19 +451,18 @@ if (isset($_GET['delete'])) {
                                 </div>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">Materias Adicionales</label>
+                                <label class="form-label">Materias Disponibles para añadir</label>
                                 <div class="border p-2 rounded" style="max-height: 200px; overflow-y: scroll;">
-                                    <?php while ($materia = $materias_disponibles->fetch_assoc()): ?>
-                                        <!-- Verificar si la materia adicional no está ya en materias actuales -->
+                                    <!-- Aquí debes incluir la lógica PHP para mostrar las materias -->
+                                    <?php while ($materia = $materias_disponiblesx->fetch_assoc()): ?>
                                         <div class="form-check">
                                             <input
                                                 class="form-check-input"
                                                 type="checkbox"
-                                                id="materia-disponible-<?php echo $materia['id']; ?>"
+                                                id="materia-<?php echo $materia['id']; ?>"
                                                 name="materias[]"
                                                 value="<?php echo $materia['id']; ?>">
-                                            <!-- No usar el atributo 'checked' para las materias adicionales -->
-                                            <label class="form-check-label" for="materia-disponible-<?php echo $materia['id']; ?>">
+                                            <label class="form-check-label" for="materia-<?php echo $materia['id']; ?>">
                                                 <?php echo htmlspecialchars($materia['nombre']); ?>
                                             </label>
                                         </div>
@@ -480,7 +486,7 @@ if (isset($_GET['delete'])) {
                                         </div>
                                     <?php endwhile; ?>
                                     <?php if ($usuarios->num_rows > 0): ?>
-                                        <?php while ($usuario = $usuarios->fetch_assoc()): ?>
+                                        <?php while ($usuario = $usuariosx->fetch_assoc()): ?>
                                             <div class="form-check">
                                                 <input class="form-check-input" type="checkbox" id="usuario-<?php echo $usuario['id']; ?>" name="usuarios[]" value="<?php echo $usuario['id']; ?>">
                                                 <label class="form-check-label" for="usuario-<?php echo $usuario['id']; ?>">

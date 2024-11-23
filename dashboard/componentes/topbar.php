@@ -1,5 +1,4 @@
 <?php $usuario_id = $_SESSION['usuario_id']; ?>
-
 <!DOCTYPE html>
 <html lang="es">
 
@@ -7,33 +6,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Componente - Topbar</title>
+    <link rel="stylesheet" href="../public/css/styles.css">
 
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-
-    <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    <!-- FontAwesome -->
     <script src="https://kit.fontawesome.com/198d3df6d4.js" crossorigin="anonymous"></script>
-
-    <!-- Estilos personalizados -->
-    <style>
-        .nav-link.active {
-            background-color: #0d6efd !important;
-            color: white !important;
-        }
-
-        .nav-link {
-            color: #fff !important;
-        }
-
-        .navbarfl {
-
-            padding-left: 280px;
-
-        }
-    </style>
 </head>
 
 <body>
