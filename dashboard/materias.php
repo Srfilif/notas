@@ -1,0 +1,143 @@
+<?php
+session_start();
+include '../database.php';
+
+// Verificar si el usuario está logueado y es un administrador
+if (!isset($_SESSION['usuario_id']) || $_SESSION['rol'] !== 'administrador') {
+    header("Location: error.php");
+    exit;
+}
+
+// Procesar la eliminación si se envía una solicitud POST
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
+    $id = intval($_POST['eliminar_id']);
+    $conn->query("DELETE FROM materias WHERE id = $id");
+    // Redirigir para evitar reenvíos de formulario
+    header("Location: " . $_SERVER['PHP_SELF']);
+    exit;
+}
+
+// Obtener las materias desde la base de datos
+$materias = $conn->query("
+    SELECT 
+        m.id, 
+        m.nombre, 
+        m.descripcion, 
+        c.nombre AS curso, 
+        m.fecha_inicio, 
+        m.fecha_fin 
+    FROM materias m
+    JOIN cursos c ON m.curso_id = c.id
+");
+?>
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ver Materias</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        aside {
+            position: fixed;
+            height: 100vh;
+            width: 280px;
+            background-color: #343a40; /* bg-dark */
+            color: white;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+        }
+        main {
+            margin-left: 280px; /* Ancho del sidebar */
+            flex: 1;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+<aside>
+    <?php include 'componentes/sidebar.php'; ?>
+</aside>
+<?php include 'componentes/topbar.php'; ?>
+<main>
+    <div class="container mt-5">
+        <h1 class="text-center text-primary">Lista de Materias</h1><br>
+        <p>Acontinuacion veras una lista detallada con las materias actualmente creadas:</p>
+
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Curso</th>
+                    <th>Descripción</th>
+                    <th>Fecha de Inicio</th>
+                    <th>Fecha de Fin</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php while ($materia = $materias->fetch_assoc()): ?>
+                    <tr>
+                        <td><?php echo $materia['id']; ?></td>
+                        <td><?php echo $materia['nombre']; ?></td>
+                        <td><?php echo $materia['curso']; ?></td>
+                        <td><?php echo $materia['descripcion']; ?></td>
+                        <td><?php echo $materia['fecha_inicio']; ?></td>
+                        <td><?php echo $materia['fecha_fin']; ?></td>
+                        <td>
+                            <button class="btn btn-sm btn-danger" onclick="confirmarEliminar('<?php echo $materia['id']; ?>')">
+                                <i class="fa-solid fa-trash"></i> Eliminar
+                            </button>
+                            <a href="editar_materia.php?id=<?php echo $materia['id']; ?>" class="btn btn-sm btn-warning">
+                                <i class="fa-solid fa-pen-to-square"></i> Editar
+                            </a>                       
+                        </td>
+                    </tr>
+                <?php endwhile; ?>
+            </tbody>
+        </table>
+        <div class="mt-4">
+                <a href="nuevo_curso.php" class="btn btn-primary">Crear Nuevo Materia</a>
+            </div>
+    </div>
+</main>
+
+<script>
+    function confirmarEliminar(id) {
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: "No podrás deshacer esta acción.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Enviar el formulario de eliminación usando POST
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '';
+                
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'eliminar_id';
+                input.value = id;
+                form.appendChild(input);
+
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    }
+</script>
+</body>
+</html>
