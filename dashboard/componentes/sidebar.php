@@ -73,7 +73,7 @@ $rol = $_SESSION['rol'];
             <?php elseif ($rol === 'administrador') : ?>
                 <li>
                     <a href="materias.php" class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'materias.php' ? 'active' : ''; ?> text-white">
-                        <i class="fa-regular fa-calendar-check"></i> Gestionar Materias
+                        <i class="fa-regular fa-calendar-check"></i> Gestión de Materias
                     </a>
                 </li>
                 <li>

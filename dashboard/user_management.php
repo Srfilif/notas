@@ -92,9 +92,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['editar_usuario'])) {
 
         // Mostrar mensaje de éxito
         header("Location: " . $_SERVER['PHP_SELF']);
-
-  
-  
     } else {
         // Mostrar mensaje de error
         echo "<script>
@@ -122,10 +119,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_usuario_id']
     $delete_usuario_query->bind_param("i", $usuario_id);
 
     if ($delete_usuario_query->execute()) {
-      
-      
-    header("Location: " . $_SERVER['PHP_SELF']);
 
+
+        header("Location: " . $_SERVER['PHP_SELF']);
     } else {
         echo "<script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -189,17 +185,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_usuario_id']
 
 
         <div class="container mt-5">
-            <h1 class="text-center mb-4">Gestionar Usuarios</h1>
-
-            <div class="mb-4 text-end">
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#nuevoUsuarioModal">
-                    Nuevo Usuario
-                </button>
-            </div>
+            <h1 class="text-center text-primary">Gestionar Usuarios</h1>
 
 
-            <table class="table table-bordered">
-                <thead>
+
+
+            <table class="table table-bordered table-striped">
+                <thead class="table-dark">
                     <tr>
                         <th>ID</th>
                         <th>Nombre</th>
@@ -244,6 +236,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_usuario_id']
                     <?php endwhile; ?>
                 </tbody>
             </table>
+            <div class="mb-4 text-start">
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#nuevoUsuarioModal">
+                    Nuevo Usuario
+                </button>
+            </div>
         </div>
         <!-- Modal para añadir un nuevo usuario -->
         <div class="modal fade" id="nuevoUsuarioModal" tabindex="-1" aria-labelledby="nuevoUsuarioModalLabel" aria-hidden="true">
