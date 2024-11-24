@@ -40,12 +40,12 @@ $rol = $_SESSION['rol'];
             <?php if ($rol === 'estudiante') : ?>
                 <li>
                     <a href="seguimiento.php" class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'seguimiento.php' ? 'active' : ''; ?> text-white">
-                        <i class="fa-solid fa-gauge"></i> Estado académico
+                    <i class="fa-solid fa-newspaper"></i> Estado académico
                     </a>
                 </li>
                 <li>
                     <a href="../error.php?errorcode=soon" class="nav-link text-white">
-                        <i class="fa-solid fa-message"></i> Faltas y Anotaciones
+                    <i class="fa-solid fa-flag"></i> Faltas y Anotaciones
                     </a>
                 </li>
             <?php elseif ($rol === 'profesor') : ?>
@@ -56,13 +56,13 @@ $rol = $_SESSION['rol'];
                 </li>
                 <li>
                     <a href="academico.php" class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'academico.php' ? 'active' : ''; ?> text-white">
-                        <i class="fa-solid fa-users"></i> Gestión de Notas
+                    <i class="fa-solid fa-note-sticky"></i> Gestión de Notas
                     </a>
                 </li>
             <?php elseif ($rol === 'desarrollador') : ?>
                 <li>
                     <a href="nuevo_curso.php" class="nav-link text-white">
-                        <i class="fa-regular fa-calendar-check"></i> Nuevo Curso
+                    <i class="fa-solid fa-calendar-days"></i> Nuevo Curso
                     </a>
                 </li>
                 <li>
@@ -73,17 +73,17 @@ $rol = $_SESSION['rol'];
             <?php elseif ($rol === 'administrador') : ?>
                 <li>
                     <a href="materias.php" class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'materias.php' ? 'active' : ''; ?> text-white">
-                        <i class="fa-regular fa-calendar-check"></i> Gestión de Materias
+                    <i class="fa-solid fa-note-sticky"></i></i> Gestión de Materias
                     </a>
                 </li>
                 <li>
                     <a href="user_management.php" class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'user_management.php' ? 'active' : ''; ?> text-white">
-                        <i class="fa-solid fa-users"></i> Gestión de Usuarios
+                    <i class="fa-solid fa-user"></i> Gestión de Usuarios
                     </a>
                 </li>
                 <li>
                     <a href="cursos.php" class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'cursos.php' ? 'active' : ''; ?> text-white">
-                        <i class="fa-solid fa-users"></i> Gestión de Cursos
+                  <i class="fa-solid fa-book"></i> Gestión de Cursos
                     </a>
                 </li>
             <?php endif; ?>
@@ -91,31 +91,7 @@ $rol = $_SESSION['rol'];
         <hr>
 
         <!-- Perfil de usuario -->
-        <div class="dropdown">
-            <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
-                <?php
-                include '../database.php';
-                $avatar = 'https://via.placeholder.com/32'; // Valor predeterminado
-                if ($_SESSION['usuario_id']) {
-                    $avatar_query = $conn->query("SELECT avatar FROM usuarios WHERE id = $usuario_id");
-                    $avatar_data = $avatar_query->fetch_assoc();
-                    if (!empty($avatar_data['avatar'])) {
-                        $avatar = '../uploads/images/profile/' . htmlspecialchars($avatar_data['avatar']);
-                    }
-                }
-                ?>
-                <img src="<?= $avatar ?>" alt="Usuario" width="32" height="32" class="rounded-circle me-2">
-                <strong><?= htmlspecialchars($_SESSION['usuario_nombre'] ?? 'Usuario'); ?></strong>
-            </a>
-            <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="dropdownUser1">
-                <li><a class="dropdown-item" href="configuracion.php">Configuración</a></li>
-                <li><a class="dropdown-item" href="perfil.php">Perfil</a></li>
-                <li>
-                    <hr class="dropdown-divider">
-                </li>
-                <li><a class="dropdown-item" href="../logout.php">Cerrar sesión</a></li>
-            </ul>
-        </div>
+      <p>Sistema de Notas V0.0.12</p>
     </div>
 </body>
 

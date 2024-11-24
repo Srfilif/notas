@@ -69,7 +69,7 @@ while ($categoria = $categorias->fetch_assoc()) {
     $materias_categorias[$categoria['materia']][] = $categoria['categoria'];
 }
 ?>
->
+
 
 <!DOCTYPE html>
 <html lang="es">
@@ -105,7 +105,7 @@ while ($categoria = $categorias->fetch_assoc()) {
 
 <body class="bg-light">
     <aside>
-        <?php include 'componentes/sidebar.php'; ?>
+    <?php include 'componentes/sidebar.php'; ?>
     </aside>
     <?php include 'componentes/topbar.php'; ?>
 
