@@ -90,14 +90,14 @@ $conn->close();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Perfil de Usuario</title>
-    <!-- Agregar estilos de Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="./public/css/styles.css">
+
 </head>
 
 <body>
     <aside>
-        <?php include 'componentes/sidebar.php'; ?>
+    <?php include 'componentes/sidebar.php'; ?>
     </aside>
     <?php include 'componentes/topbar.php'; ?>
 
@@ -179,3 +179,25 @@ $conn->close();
 </body>
 
 </html>
+<style>
+    footer{
+    padding-left: 300px;
+    padding-right: 20px;
+    color: white;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+aside {
+    position: fixed;
+    height: 100vh;
+    width: 280px;
+    background-color: #343a40; /* bg-dark */
+    color: white;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+}
+</style>
