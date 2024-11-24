@@ -91,7 +91,10 @@ $rol = $_SESSION['rol'];
         <hr>
 
         <!-- Perfil de usuario -->
-      <p>Sistema de Notas V0.0.12</p>
+
+<p>Sistema de Notas V1.0</p>
+
+
     </div>
 </body>
 

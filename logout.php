@@ -1,10 +1,46 @@
 <?php
 session_start();
 
+if (!isset($_SESSION['usuario_id'])) {
+    // Mostrar un mensaje con SweetAlert2
+    echo '<!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>No estás logueado</title>
+        <!-- SweetAlert2 -->
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    </head>
+    <body>
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                Swal.fire({
+                    icon: "error",
+                    title: "No estás logueado",
+                    text: "Parece que no estas logeado, Por lo tanto no podras cerrar seccion.",
+                    showCancelButton: true,
+                    confirmButtonText: "Ir al login",
+                    cancelButtonText: "Regresar"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = "login.php";
+                    } else {
+                        window.history.back();
+                    }
+                });
+            });
+        </script>
+    </body>
+    </html>';
+    // Detener la ejecución del resto del script
+    exit;
+}
+
 // Destruir todas las variables de sesión
 session_unset();
-
-// Destruir la sesión
 session_destroy();
 ?>
 
@@ -17,56 +53,22 @@ session_destroy();
     <title>Logged Out</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="styles.css">
+
     <style>
-        .logout-container {
-            text-align: center;
-            background: #fff;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            max-width: 400px;
-            width: 100%;
-        }
 
-        .logout-container img {
-            width: 80px;
-            margin-bottom: 20px;
-        }
-
-        .logout-container h1 {
-            font-size: 22px;
-            color: #333;
-            margin-bottom: 10px;
-        }
-
-        .logout-container p {
-            color: #666;
-            font-size: 14px;
-            margin-bottom: 20px;
-        }
-
-        .logout-container .btn {
-            background-color: #0d6efd;
-            color: #fff;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-        }
-
-        .logout-container .btn:hover {
-            background-color: #0056b3;
-        }
     </style>
 </head>
 <?php include 'componentes/header.php'; ?>
 
 <body>
 
-    <center style="padding-top: 5%;" >
+    <center style="padding-top: 5%;">
 
-        <div   class="logout-container">
+        <div class="logout-container">
             <img src="https://via.placeholder.com/100" alt="Logo">
-            <h1>Has cerrado sesión            </h1>
+            <h1>Has cerrado sesión </h1>
             <p>Gracias por utilizar nuestra plataforma.</p>
             <a href="login.php" class="btn">ir a Login</a>
             <footer>

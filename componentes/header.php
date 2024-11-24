@@ -23,10 +23,13 @@
 
             <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
                 <li><a href="./index.php" class="nav-link px-2 <?= $current_page === 'index.php' ? 'text-secondary' : 'text-white' ?>">Inicio</a></li>
-                <li><a href="./dashboard/index.php" class="nav-link px-2 <?= $current_page === 'dash.php' ? 'text-secondary' : 'text-white' ?>">Dashboard</a></li>
-                <li><a href="./vernotas.php" class="nav-link px-2 <?= $current_page === 'header.php' ? 'text-secondary' : 'text-white' ?>">Notas</a></li>
-                <li><a href="#" class="nav-link px-2 text-white">FAQs</a></li>
-                <li><a href="#" class="nav-link px-2 text-white">About</a></li>
+                <?php if (isset($_SESSION['usuario_id'])): ?>
+                    <li><a href="./dashboard/index.php" class="nav-link px-2 <?= $current_page === 'dash.php' ? 'text-secondary' : 'text-white' ?>">Dashboard</a></li>
+                <?php endif; ?>
+                <li><a href="./faq.php" class="nav-link px-2 <?= $current_page === 'faq.php' ? 'text-secondary' : 'text-white' ?>">FAQs</a></li>
+
+                <li><a href="./about.php" class="nav-link px-2 <?= $current_page === 'about.php' ? 'text-secondary' : 'text-white' ?>">About</a></li>
+
             </ul>
 
             <form class="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3">
