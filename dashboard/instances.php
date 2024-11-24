@@ -158,7 +158,7 @@ if (isset($_GET['copiar_categoria_id']) && isset($_GET['materia_id'])) {
     <main>
 
         <div class="container mt-5">
-            <h1 class="text-center mb-4">Gestión de instancias</h1>
+            <h1 class="text-center text-primary">Gestión de instancias</h1>
 
             <!-- Selección de curso y materia -->
             <form method="GET" action="" class="mb-3">

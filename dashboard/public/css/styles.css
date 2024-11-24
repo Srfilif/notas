@@ -25,7 +25,9 @@
     padding-left: 280px;
 
 }
-
+.navbarfl form {
+    max-width: 400px; /* Ajusta este valor según sea necesario */
+}
 footer{
     padding-left: 300px;
     padding-right: 20px;
@@ -48,8 +50,3 @@ aside {
 }
 
 
-main {
-    margin-left: 280px; /* Ancho del sidebar */
-    flex: 1;
-    padding: 20px;
-}

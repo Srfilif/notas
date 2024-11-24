@@ -102,7 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_notas'])) {
 
     <main>
         <div class="container mt-5">
-            <h1 class="text-center mb-4">Asignar Notas</h1>
+            <h1 class="text-center text-primary">Asignar Notas</h1>
 
             <!-- Seleccionar Curso -->
             <form method="GET" action="" class="mb-3">

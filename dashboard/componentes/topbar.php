@@ -19,16 +19,20 @@
         <nav class="navbar navbar-expand navbar-dark bg-dark">
             <ul class="navbar-nav ms-auto">
                 <!-- Nav Item - Search Bar -->
+                <div> 
                 <li class="nav-item w-100">
-                    <form class="d-flex mx-auto" style="width: 100%;">
+                    <form class="d-flex mx-auto" style="width: 100%;" action="search.php" method="GET">
                         <div class="input-group">
-                            <input type="text" class="form-control" placeholder="Buscar..." aria-label="Buscar">
-                            <button class="btn btn-primary" type="button">
+                            <!-- El input de búsqueda recibe el nombre 'search' -->
+                            <input type="text" class="form-control" name="search" placeholder="Buscar..." aria-label="Buscar" required>
+                            <!-- El botón para enviar la búsqueda -->
+                            <button class="btn btn-primary" type="submit">
                                 <i class="fas fa-search"></i>
                             </button>
                         </div>
                     </form>
                 </li>
+                </div>
 
                 <!-- Nav Item - Alerts -->
                 <li class="nav-item dropdown mx-1">
@@ -55,7 +59,6 @@
                     <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <span class="me-2 d-none d-lg-inline text-light"><?= $_SESSION['usuario_nombre'] ?? 'Usuario'; ?></span>
                         <?php
-
                         include '../database.php';
                         if ($_SESSION['usuario_id']) {
                             // Consulta para obtener el avatar del usuario
@@ -72,12 +75,12 @@
 
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="userDropdown">
-                        <li><a class="dropdown-item" href="perfil.php"><i class="fas fa-user me-2"></i>Profile</a></li>
-                        <li><a class="dropdown-item" href="../error.php?errorcode=soon"><i class="fas fa-cogs me-2"></i>Opciones</a></li>
+                        <li><a class="dropdown-item" href="perfil.php"><i class="fas fa-user me-2"></i>Perfil</a></li>
+                        <li><a class="dropdown-item" href="settings.php"><i class="fas fa-cogs me-2"></i>Opciones</a></li>
                         <li>
                             <hr class="dropdown-divider">
                         </li>
-                        <li><a class="dropdown-item" href="../logout.php"><i class="fas fa-sign-out-alt me-2"></i>Cerrar Seccion</a></li>
+                        <li><a class="dropdown-item" href="../logout.php"><i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión</a></li>
                     </ul>
                 </li>
             </ul>
@@ -88,3 +91,12 @@
 </body>
 
 </html>
+
+<script>
+    document.querySelector('form').addEventListener('submit', function(event) {
+    // Elimina event.preventDefault(), para permitir que el formulario se envíe correctamente.
+    const query = document.querySelector('input[name="search"]').value;
+    window.location.href = 'search.php?search=' + encodeURIComponent(query); // Redirige a search.php con el término de búsqueda
+});
+
+</script>

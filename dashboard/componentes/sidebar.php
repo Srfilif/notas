@@ -23,7 +23,7 @@ $rol = $_SESSION['rol'];
     <!-- Sidebar -->
     <div class="d-flex flex-column flex-shrink-0 p-3 text-white bg-dark" style="width: 280px; height: 100vh; position: fixed;">
         <!-- Título del sistema -->
-        <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+        <a href="../index.php" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
             <i class="fa-solid fa-graduation-cap me-2"></i>
             <span class="fs-4">Sistema de Notas</span>
         </a>
