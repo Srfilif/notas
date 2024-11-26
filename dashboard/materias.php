@@ -73,39 +73,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear_materia'])) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
     $id = intval($_POST['eliminar_id']);
 
-    // Verificar si hay registros dependientes en notas
-    $stmt = $conn->prepare("SELECT COUNT(*) FROM notas WHERE materia_id = ?");
-    $stmt->bind_param('i', $id);
-    $stmt->execute();
-    $stmt->bind_result($count);
-    $stmt->fetch();
-    $stmt->close();
+    try {
+        $stmt = $conn->prepare("SELECT COUNT(*) FROM notas WHERE materia_id = ?");
+        $stmt->bind_param('i', $id);
+        $stmt->execute();
+        $stmt->bind_result($count);
+        $stmt->fetch();
+        $stmt->close();
 
-    if ($count > 0) {
-
-        echo "<script>
+        if ($count > 0) {
+            echo "<script>
             document.addEventListener('DOMContentLoaded', function() {
                 Swal.fire({
-                    title: '¡Ups!',
-                    text: 'Algo ha fallado al intentar eliminar la materia. Parece que hay registros dependientes en la tabla de notas. Por favor, elimina los registros dependientes primero.',
-
+                    title: '¡Error!',
+                    text: 'Se produjo un error inesperado: ',
                     icon: 'error',
                     confirmButtonText: 'Aceptar'
                 });
             });
         </script>";
-    } else {
-        // Eliminar la materia
-        $stmt = $conn->prepare("DELETE FROM materias WHERE id = ?");
-        $stmt->bind_param('i', $id);
-        $stmt->execute();
-        $stmt->close();
-
-        // Redirigir para evitar reenvíos de formulario
-        header("Location: " . $_SERVER['PHP_SELF']);
-        exit;
-    }
+        } else {
+            $stmt = $conn->prepare("DELETE FROM materias WHERE id = ?");
+            $stmt->bind_param('i', $id);
+            $stmt->execute();
+            $stmt->close();
+            
+        }
+    } catch (Exception $e) {
+ echo "<script>
+            document.addEventListener('DOMContentLoaded', function() {
+                Swal.fire({
+                    title: '¡Error!',
+                    text: 'Se produjo un error inesperado: ',
+                    icon: 'error',
+                    confirmButtonText: 'Aceptar'
+                });
+            });
+        </script>";    }
 }
+
 
 
 // Procesar la actualización de datos
